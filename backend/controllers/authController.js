@@ -32,34 +32,29 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // 1. Veri kontrolü
         if (!email || !password) {
             return res.status(400).json({ message: 'Email ve şifre zorunludur.' });
         }
 
-        // 2. Kullanıcıyı bul
         const user = await User.findByEmail(email);
         if (!user) {
             return res.status(401).json({ message: 'Geçersiz email veya şifre.' });
         }
 
-        // 3. Şifreyi kontrol et (Bcrypt ile karşılaştırma)
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Geçersiz email veya şifre.' });
         }
 
-        // 4. Token oluştur (Kimlik Kartı Bas)
         const token = jwt.sign(
-            { id: user.id, username: user.username }, // Token içine gizlenecek bilgi
-            process.env.JWT_SECRET, // Bizim gizli mühür
-            { expiresIn: '1h' } // Kartın süresi (1 saat sonra geçersiz olsun)
+            { id: user.id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
         );
 
-        // 5. Cevap dön
         res.status(200).json({
             message: 'Giriş başarılı! Hoş geldin.',
-            token: token, // 👈 İşte iOS/Frontend tarafının saklayacağı anahtar bu!
+            token: token,
             user: {
                 id: user.id,
                 username: user.username,

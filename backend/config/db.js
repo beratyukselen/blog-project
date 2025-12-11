@@ -1,10 +1,8 @@
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
 
-// .env dosyasındaki şifreleri okumayı sağlar
 dotenv.config();
 
-// Veritabanı bağlantı ayarları (Havuz sistemi)
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -15,7 +13,6 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Bağlantıyı test eden küçük bir kod parçası
 pool.getConnection((err, connection) => {
     if (err) {
         console.error('❌ Veritabanı bağlantı hatası:', err.code);
@@ -26,9 +23,8 @@ pool.getConnection((err, connection) => {
         }
     } else {
         console.log('✅ Veritabanına başarıyla bağlandı!');
-        connection.release(); // Bağlantıyı bırak
+        connection.release();
     }
 });
 
-// Bu bağlantıyı dışarı aktar ki server.js kullanabilsin
 module.exports = pool.promise();

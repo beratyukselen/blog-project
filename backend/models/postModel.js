@@ -17,6 +17,17 @@ class Post {
         const [rows] = await db.execute(sql);
         return rows;
     } 
+
+static async findById(postId) {
+        const sql = `
+            SELECT posts.*, users.username 
+            FROM posts 
+            JOIN users ON posts.user_id = users.id 
+            WHERE posts.id = ?
+        `;
+        const [rows] = await db.execute(sql, [postId]);
+        return rows[0];
+    }
 }
 
 module.exports = Post;
