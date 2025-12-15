@@ -44,3 +44,33 @@ exports.getPostById = async (req, res) => {
         res.status(500).json({ message: 'Veri çekilemedi.' });
     }
 };
+
+exports.getMyPosts = async (req, res) => {
+    try {
+        const userId = req.userData.userId;
+        const posts = await Post.findByUserId(userId);
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Yazılarınız getirelemedi.'});
+    }
+};
+
+exports.deletePost = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const userId = req.userData.userId;
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            return res.status(403).json({ message: 'Bu yazıyı silmeye yetkiniz yok!' });
+        }
+
+        await Post.delete(postId);
+        res.status(200).json({ message: 'Yazı başarıyla silindi.' });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Yazı silinemedi.' });
+    }
+};

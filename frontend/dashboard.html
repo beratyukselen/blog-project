@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilim - Blog Projesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">🚀 Blog Projesi</a>
+            <div class="d-flex">
+                <a href="index.html" class="btn btn-outline-light btn-sm me-2">Anasayfa</a>
+                <button onclick="logout()" class="btn btn-danger btn-sm">Çıkış Yap</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User" class="img-fluid rounded-circle mb-3" style="width: 100px;">
+                        <h4 id="user-name">Yükleniyor...</h4>
+                        <p class="text-muted">Junior Blog Yazarı ✍️</p>
+                        <hr>
+                        <div class="d-grid">
+                            <a href="add-post.html" class="btn btn-success">➕ Yeni Yazı Ekle</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">📝 Paylaştığım Yazılar</h5>
+                        <span id="post-count" class="badge bg-light text-dark">0 Yazı</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="ps-4">Başlık</th>
+                                        <th scope="col">Tarih</th>
+                                        <th scope="col" class="text-end pe-4">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="my-posts-list">
+                                    <tr><td colspan="3" class="text-center p-3">Yükleniyor...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const username = localStorage.getItem('username');
+
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('user-name').innerText = username || 'Kullanıcı';
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const listBody = document.getElementById('my-posts-list');
+            const countSpan = document.getElementById('post-count');
+
+            try {
+                const response = await fetch('http://localhost:3000/api/posts/my-posts', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const posts = await response.json();
+
+                if (posts.length === 0) {
+                    listBody.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-muted">Henüz hiç yazı paylaşmadın. Hadi ilkini yaz! 🚀</td></tr>';
+                    countSpan.innerText = '0 Yazı';
+                    return;
+                }
+
+                countSpan.innerText = `${posts.length} Yazı`;
+                let html = '';
+
+                posts.forEach(post => {
+                    const date = new Date(post.created_at).toLocaleDateString('tr-TR');
+                    
+                    html += `
+                        <tr>
+                            <td class="ps-4 fw-bold">
+                                <a href="post-detail.html?id=${post.id}" class="text-decoration-none text-dark">${post.title}</a>
+                            </td>
+                            <td class="text-muted small">${date}</td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="alert('Düzenleme özelliği çok yakında! 🚧')">✏️</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deletePost(${post.id})">🗑</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                listBody.innerHTML = html;
+
+            } catch (error) {
+                console.error(error);
+                listBody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Veriler yüklenemedi.</td></tr>';
+            }
+        });
+
+        async function deletePost(id) {
+            if (!confirm('Bu yazıyı ve ona ait TÜM yorumları silmek istediğine emin misin? 😱')) return;
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/posts/delete/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert('Yazı başarıyla silindi! 🧹');
+                    window.location.reload();
+                } else {
+                    alert('Hata: ' + data.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Sunucu hatası!');
+            }
+        }
+    </script>
+</body>
+</html>

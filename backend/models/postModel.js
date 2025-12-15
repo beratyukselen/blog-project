@@ -28,6 +28,17 @@ static async findById(postId) {
         const [rows] = await db.execute(sql, [postId]);
         return rows[0];
     }
+
+    static async findByUserId(userId) {
+        const sql = 'SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC';
+        const [rows] = await db.execute(sql, [userId]);
+        return rows;
+    }
+
+    static async delete(id) {
+        const sql = 'DELETE FROM posts WHERE id = ?';
+        await db.execute(sql, [id]);
+    }
 }
 
 module.exports = Post;
