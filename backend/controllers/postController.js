@@ -74,3 +74,28 @@ exports.deletePost = async (req, res) => {
         res.status(500).json({ message: 'Yazı silinemedi.' });
     }
 };
+
+exports.updatePost = async (req,res) => {
+    try {
+        const postId = req.params.id;
+        const userId = req.userData.userId;
+        const { title, content, image_url, category_id } = req.body;
+
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            return res.status(404).json({ message : 'Yazı bulunamadı.' });
+        }
+
+        if (post.user_id !== userId) {
+            return res.status(403).json({ message: 'Bu yazıyı düzenlemeye yetkiniz yok!' });
+        }
+
+        await Post.update(postId, title, content, image_url, category_id);
+
+        res.status(200).json({ message: 'Yazı başarıyla güncellendi!'});
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Yazı güncellenemedi.'});
+    }
+};

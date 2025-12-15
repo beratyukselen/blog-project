@@ -106,7 +106,7 @@
                             </td>
                             <td class="text-muted small">${date}</td>
                             <td class="text-end pe-4">
-                                <button class="btn btn-sm btn-outline-primary me-1" onclick="alert('Düzenleme özelliği çok yakında! 🚧')">✏️</button>
+                                <a href ="edit-post.html?id=${post.id}" class = "btn btn-sm btn-outline-primary me-1">✏️</a>
                                 <button class="btn btn-sm btn-outline-danger" onclick="deletePost(${post.id})">🗑</button>
                             </td>
                         </tr>

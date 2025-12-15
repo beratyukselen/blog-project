@@ -39,6 +39,11 @@ static async findById(postId) {
         const sql = 'DELETE FROM posts WHERE id = ?';
         await db.execute(sql, [id]);
     }
+
+    static async update(id, title, content, image_url, category_id) {
+        const sql = 'UPDATE posts SET title = ?, content = ?, image_url = ?, category_id = ? WHERE id = ?';
+        await db.execute(sql, [title, content, image_url, category_id, id]);
+    }
 }
 
 module.exports = Post;
