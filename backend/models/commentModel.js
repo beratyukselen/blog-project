@@ -17,6 +17,17 @@ class Comment {
         const [rows] = await db.execute(sql, [postId]);
         return rows;
     }
+
+    static async findById(id) {
+        const sql = 'SELECT * FROM comments WHERE id = ?';
+        const [rows] = await db.execute(sql, [id]);
+        return rows[0];
+    }
+
+    static async delete(id) {
+        const sql = 'DELETE FROM comments WHERE id = ?';
+        await db.execute(sql, [id]);
+    }
 }
 
 module.exports = Comment;

@@ -66,9 +66,12 @@
     </div>
 
 <script>
+        let currentPostId = null;
+
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const postId = urlParams.get('id');
+            currentPostId = postId;
             const token = localStorage.getItem('token');
             
             const messageDiv = document.getElementById('message');
@@ -77,7 +80,7 @@
             const commentFormContainer = document.getElementById('comment-form-container');
             const loginWarning = document.getElementById('login-warning');
 
-            if (!postId) {
+            if (!currentPostId) {
                 messageDiv.innerHTML = '<h3 class="text-danger">Hata: Yazı ID bulunamadı!</h3>';
                 return;
             }
@@ -104,7 +107,7 @@
                 contentDiv.style.display = 'block';
                 commentsSection.style.display = 'block';
 
-                loadComments(postId);
+                loadComments();
 
                 if (token) {
                     commentFormContainer.style.display = 'block';
@@ -117,34 +120,6 @@
             } catch (error) {
                 console.error(error);
                 messageDiv.innerHTML = '<h3 class="text-danger">Yazı bulunamadı.</h3><a href="index.html" class="btn btn-primary mt-3">Anasayfaya Dön</a>';
-            }
-
-            async function loadComments(id) {
-                const list = document.getElementById('comments-list');
-                try {
-                    const res = await fetch(`http://localhost:3000/api/comments/${id}`);
-                    const comments = await res.json();
-
-                    if (comments.length === 0) {
-                        list.innerHTML = '<p class="text-muted text-center">Henüz yorum yapılmamış. İlk yorumu sen yap! 🚀</p>';
-                        return;
-                    }
-
-                    let html = '';
-                    comments.forEach(comment => {
-                        const date = new Date(comment.created_at).toLocaleDateString('tr-TR');
-                        html += `
-                            <div class="border-bottom pb-2 mb-2">
-                                <strong>${comment.username}</strong> <small class="text-muted">- ${date}</small>
-                                <p class="mb-0">${comment.content}</p>
-                            </div>
-                        `;
-                    });
-                    list.innerHTML = html;
-
-                } catch (err) {
-                    console.error("Yorum hatası:", err);
-                }
             }
 
             document.getElementById('commentForm').addEventListener('submit', async (e) => {
@@ -163,7 +138,7 @@
 
                     if (res.ok) {
                         document.getElementById('comment-content').value = '';
-                        loadComments(postId);
+                        loadComments();
                     } else {
                         alert('Yorum gönderilemedi!');
                     }
@@ -172,7 +147,73 @@
                 }
             });
         });
-    </script>
+
+        async function loadComments() {
+            const list = document.getElementById('comments-list');
+            const currentUser = localStorage.getItem('username');
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/comments/${currentPostId}`);
+                const comments = await res.json();
+
+                if (comments.length === 0) {
+                    list.innerHTML = '<p class="text-muted text-center">Henüz yorum yapılmamış. İlk yorumu sen yap! 🚀</p>';
+                    return;
+                }
+
+                let html = '';
+                comments.forEach(comment => {
+                    const date = new Date(comment.created_at).toLocaleDateString('tr-TR');
+
+                    let deleteButton = '';
+                    if (currentUser && currentUser === comment.username) {
+                        deleteButton = `
+                        <button onclick="deleteComment(${comment.id})" class="btn btn-sm btn-outline-danger float-end" style="font-size: 0.8rem;">
+                            🗑 Sil
+                        </button>
+                        `;
+                    }
+
+                    html += `
+                        <div class="border-bottom pb-2 mb-2">
+                            ${deleteButton}
+                            <strong>${comment.username}</strong> <small class="text-muted">- ${date}</small>
+                            <p class="mb-0 mt-1">${comment.content}</p>
+                        </div>
+                    `;
+                });
+                list.innerHTML = html;
+
+            } catch (err) {
+                console.error("Yorum hatası:", err);
+            }
+        }
+
+        async function deleteComment(commentId) {
+            if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
+
+            const token = localStorage.getItem('token');
+
+            try {
+                const res = await fetch(`http://localhost:3000/api/comments/delete/${commentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    loadComments();
+                } else {
+                    const data = await res.json();
+                    alert("Hata: " + data.message);
+                }
+            } catch (error) {
+                console.error("Silme hatası:", error);
+                alert("Sunucu hatası!");
+            }
+        }
+</script>
 
 </body>
 </html>
