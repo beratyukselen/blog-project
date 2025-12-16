@@ -12,6 +12,17 @@ class User {
         const [rows] = await db.execute(sql, [email]);
         return rows[0];
     }
+
+    static async findById(id) {
+        const sql = 'SELECT id, username, email, bio, profile_image, created at FROM users WHERE id = ?';
+        const [rows] = await db.execute(sql, [id]);
+        return rows[0];
+    }
+
+    static async update(id, username, bio, profile_image) {
+        const sql = 'UPDATE users SET username = ?, bio = ?, profile_image = ? WHERE id = ?';
+        await db.execute(sql, [username, bio, profile_image, id]);
+    }
 }
 
 module.exports = User;
