@@ -17,6 +17,7 @@ app.use('/api/auth' , authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 
+app.use('/api/likes', likeRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: "Backend ve Git Yapısı Hazır! 🚀" });

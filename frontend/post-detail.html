@@ -20,16 +20,23 @@
             
             <img id="detail-image" src="" class="card-img-top" alt="Blog Resmi" style="height: 400px; object-fit: cover;">
             
-            <div class="card-body p-5">
-                <h1 id="detail-title" class="card-title mb-3 fw-bold display-6"></h1>
-                <p class="text-muted border-bottom pb-3">
-                    ✍️ Yazar: <span id="detail-author" class="fw-bold text-dark"></span> 
-                    | 📅 Tarih: <span id="detail-date"></span>
-                </p>
+        <div class="card-body p-5">
+            <h1 id="detail-title" class="card-title mb-3 fw-bold display-6"></h1>
+            <p class="text-muted border-bottom pb-3">
+                ✍️ Yazar: <span id="detail-author" class="fw-bold text-dark"></span> 
+                | 📅 Tarih: <span id="detail-date"></span>
+            </p>
 
-                <div id="detail-body" class="card-text mt-4 fs-5" style="line-height: 1.8;">
-                    </div>
+            <div id="detail-body" class="card-text mt-4 fs-5" style="line-height: 1.8;">
             </div>
+
+            <hr class="my-4"> <div class="d-flex align-items-center">
+                <button id="likeBtn" class="btn btn-outline-danger me-2" style="transition: 0.3s;">
+                    ❤️ Beğen
+                </button>
+                <span class="fw-bold text-muted"><span id="likeCount">0</span> Kişi Beğendi</span>
+            </div>
+
         </div>
 
         <div id="comments-section" class="card shadow-lg mx-auto mt-4" style="max-width: 800px; display: none;">
@@ -66,31 +73,39 @@
     </div>
 
 <script>
+        // Global değişkenler
         let currentPostId = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const postId = urlParams.get('id');
-            currentPostId = postId;
+            currentPostId = urlParams.get('id');
             const token = localStorage.getItem('token');
+            const currentUser = localStorage.getItem('username');
             
+            // HTML Elemanları
             const messageDiv = document.getElementById('message');
             const contentDiv = document.getElementById('post-content');
             const commentsSection = document.getElementById('comments-section');
             const commentFormContainer = document.getElementById('comment-form-container');
             const loginWarning = document.getElementById('login-warning');
+            
+            // Yeni Eklenenler (Like) ❤️
+            const likeBtn = document.getElementById('likeBtn');
+            const likeCountSpan = document.getElementById('likeCount');
 
+            // 1. Yazı Detayını Getir
             if (!currentPostId) {
                 messageDiv.innerHTML = '<h3 class="text-danger">Hata: Yazı ID bulunamadı!</h3>';
                 return;
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/posts/${postId}`);
+                const response = await fetch(`http://localhost:3000/api/posts/${currentPostId}`);
                 if (!response.ok) throw new Error('Yazı bulunamadı');
 
                 const post = await response.json();
 
+                // Detayları Doldur
                 document.getElementById('detail-title').innerText = post.title;
                 document.getElementById('detail-author').innerText = post.username;
                 document.getElementById('detail-body').innerText = post.content;
@@ -103,18 +118,25 @@
                 const imgElement = document.getElementById('detail-image');
                 imgElement.src = post.image_url || 'https://via.placeholder.com/800x400?text=Blog+Resmi';
 
+                // Ekranı Aç
                 messageDiv.style.display = 'none';
                 contentDiv.style.display = 'block';
                 commentsSection.style.display = 'block';
 
+                // Fonksiyonları Başlat
                 loadComments();
+                checkLikeStatus(); // 👈 YENİ: Kalp durumunu kontrol et
 
+                // Giriş Durumuna Göre Form Ayarı
                 if (token) {
                     commentFormContainer.style.display = 'block';
                     loginWarning.style.display = 'none';
                 } else {
                     commentFormContainer.style.display = 'none';
                     loginWarning.style.display = 'block';
+                    // Giriş yapmamışsa Like butonunu pasif yapabiliriz
+                    likeBtn.disabled = true;
+                    likeBtn.title = "Beğenmek için giriş yapmalısın";
                 }
 
             } catch (error) {
@@ -122,6 +144,62 @@
                 messageDiv.innerHTML = '<h3 class="text-danger">Yazı bulunamadı.</h3><a href="index.html" class="btn btn-primary mt-3">Anasayfaya Dön</a>';
             }
 
+            // --- YENİ: BEĞENİ FONKSİYONLARI ❤️ ---
+
+            // 1. Durum Kontrolü (Sayfa açılınca)
+            async function checkLikeStatus() {
+                if (!token) return; // Giriş yapmamışsa kontrol etme
+
+                try {
+                    const res = await fetch(`http://localhost:3000/api/likes/status/${currentPostId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+
+                    // Sayacı güncelle
+                    likeCountSpan.innerText = data.count;
+
+                    // Buton rengini ayarla
+                    if (data.liked) {
+                        likeBtn.className = 'btn btn-danger me-2'; // Dolu Kırmızı
+                        likeBtn.innerHTML = '❤️ Beğendin';
+                    } else {
+                        likeBtn.className = 'btn btn-outline-danger me-2'; // Boş Kırmızı
+                        likeBtn.innerHTML = '❤️ Beğen';
+                    }
+                } catch (err) {
+                    console.error("Like status error:", err);
+                }
+            }
+
+            // 2. Tıklama Olayı (Toggle)
+            likeBtn.addEventListener('click', async () => {
+                if (!token) {
+                    alert("Beğenmek için giriş yapmalısın!");
+                    return;
+                }
+
+                try {
+                    const res = await fetch('http://localhost:3000/api/likes/toggle', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ postId: currentPostId })
+                    });
+
+                    if (res.ok) {
+                        checkLikeStatus(); // Durumu ve sayıyı yenile
+                    }
+                } catch (err) {
+                    console.error("Like toggle error:", err);
+                }
+            });
+
+            // -------------------------------------
+
+            // Yorum Gönderme
             document.getElementById('commentForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const content = document.getElementById('comment-content').value;
@@ -133,7 +211,7 @@
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify({ content, post_id: postId })
+                        body: JSON.stringify({ content, post_id: currentPostId })
                     });
 
                     if (res.ok) {
@@ -148,6 +226,7 @@
             });
         });
 
+        // Yorumları Getirme Fonksiyonu (Eski kodun aynısı)
         async function loadComments() {
             const list = document.getElementById('comments-list');
             const currentUser = localStorage.getItem('username');
@@ -189,19 +268,15 @@
             }
         }
 
+        // Yorum Silme Fonksiyonu
         async function deleteComment(commentId) {
             if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
-
             const token = localStorage.getItem('token');
-
             try {
                 const res = await fetch(`http://localhost:3000/api/comments/delete/${commentId}`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
                 if (res.ok) {
                     loadComments();
                 } else {
@@ -213,7 +288,7 @@
                 alert("Sunucu hatası!");
             }
         }
-</script>
+    </script>
 
 </body>
 </html>
