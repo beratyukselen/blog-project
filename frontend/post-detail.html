@@ -73,7 +73,6 @@
     </div>
 
 <script>
-        // Global değişkenler
         let currentPostId = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -82,18 +81,15 @@
             const token = localStorage.getItem('token');
             const currentUser = localStorage.getItem('username');
             
-            // HTML Elemanları
             const messageDiv = document.getElementById('message');
             const contentDiv = document.getElementById('post-content');
             const commentsSection = document.getElementById('comments-section');
             const commentFormContainer = document.getElementById('comment-form-container');
             const loginWarning = document.getElementById('login-warning');
             
-            // Yeni Eklenenler (Like) ❤️
             const likeBtn = document.getElementById('likeBtn');
             const likeCountSpan = document.getElementById('likeCount');
 
-            // 1. Yazı Detayını Getir
             if (!currentPostId) {
                 messageDiv.innerHTML = '<h3 class="text-danger">Hata: Yazı ID bulunamadı!</h3>';
                 return;
@@ -105,8 +101,9 @@
 
                 const post = await response.json();
 
-                // Detayları Doldur
                 document.getElementById('detail-title').innerText = post.title;
+                const categoryBadge = `<span class = "badge bg-warning text-dark mb-2">${post.category_name || 'Genel'}</span>`;
+                document.getElementById('detail-title').insertAdjacentHTML('beforebegin', categoryBadge);
                 document.getElementById('detail-author').innerText = post.username;
                 document.getElementById('detail-body').innerText = post.content;
                 
@@ -118,23 +115,19 @@
                 const imgElement = document.getElementById('detail-image');
                 imgElement.src = post.image_url || 'https://via.placeholder.com/800x400?text=Blog+Resmi';
 
-                // Ekranı Aç
                 messageDiv.style.display = 'none';
                 contentDiv.style.display = 'block';
                 commentsSection.style.display = 'block';
 
-                // Fonksiyonları Başlat
                 loadComments();
-                checkLikeStatus(); // 👈 YENİ: Kalp durumunu kontrol et
+                checkLikeStatus();
 
-                // Giriş Durumuna Göre Form Ayarı
                 if (token) {
                     commentFormContainer.style.display = 'block';
                     loginWarning.style.display = 'none';
                 } else {
                     commentFormContainer.style.display = 'none';
                     loginWarning.style.display = 'block';
-                    // Giriş yapmamışsa Like butonunu pasif yapabiliriz
                     likeBtn.disabled = true;
                     likeBtn.title = "Beğenmek için giriş yapmalısın";
                 }
@@ -144,11 +137,8 @@
                 messageDiv.innerHTML = '<h3 class="text-danger">Yazı bulunamadı.</h3><a href="index.html" class="btn btn-primary mt-3">Anasayfaya Dön</a>';
             }
 
-            // --- YENİ: BEĞENİ FONKSİYONLARI ❤️ ---
-
-            // 1. Durum Kontrolü (Sayfa açılınca)
             async function checkLikeStatus() {
-                if (!token) return; // Giriş yapmamışsa kontrol etme
+                if (!token) return;
 
                 try {
                     const res = await fetch(`http://localhost:3000/api/likes/status/${currentPostId}`, {
@@ -156,15 +146,13 @@
                     });
                     const data = await res.json();
 
-                    // Sayacı güncelle
                     likeCountSpan.innerText = data.count;
 
-                    // Buton rengini ayarla
                     if (data.liked) {
-                        likeBtn.className = 'btn btn-danger me-2'; // Dolu Kırmızı
+                        likeBtn.className = 'btn btn-danger me-2';
                         likeBtn.innerHTML = '❤️ Beğendin';
                     } else {
-                        likeBtn.className = 'btn btn-outline-danger me-2'; // Boş Kırmızı
+                        likeBtn.className = 'btn btn-outline-danger me-2';
                         likeBtn.innerHTML = '❤️ Beğen';
                     }
                 } catch (err) {
@@ -172,7 +160,6 @@
                 }
             }
 
-            // 2. Tıklama Olayı (Toggle)
             likeBtn.addEventListener('click', async () => {
                 if (!token) {
                     alert("Beğenmek için giriş yapmalısın!");
@@ -190,16 +177,13 @@
                     });
 
                     if (res.ok) {
-                        checkLikeStatus(); // Durumu ve sayıyı yenile
+                        checkLikeStatus();
                     }
                 } catch (err) {
                     console.error("Like toggle error:", err);
                 }
             });
 
-            // -------------------------------------
-
-            // Yorum Gönderme
             document.getElementById('commentForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const content = document.getElementById('comment-content').value;
@@ -226,7 +210,6 @@
             });
         });
 
-        // Yorumları Getirme Fonksiyonu (Eski kodun aynısı)
         async function loadComments() {
             const list = document.getElementById('comments-list');
             const currentUser = localStorage.getItem('username');
@@ -268,7 +251,6 @@
             }
         }
 
-        // Yorum Silme Fonksiyonu
         async function deleteComment(commentId) {
             if (!confirm("Bu yorumu silmek istediğine emin misin?")) return;
             const token = localStorage.getItem('token');

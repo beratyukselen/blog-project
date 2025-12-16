@@ -9,9 +9,10 @@ class Post {
 
     static async getAll() {
         const sql = `
-            SELECT posts.*, users.username 
+            SELECT posts.*, users.username, categories.name as category_name
             FROM posts 
             JOIN users ON posts.user_id = users.id 
+            LEFT JOIN categories ON posts.category_id = categories.id
             ORDER BY created_at DESC
         `;
         const [rows] = await db.execute(sql);
@@ -20,9 +21,10 @@ class Post {
 
 static async findById(postId) {
         const sql = `
-            SELECT posts.*, users.username 
+            SELECT posts.*, users.username, categories.name as category_name
             FROM posts 
-            JOIN users ON posts.user_id = users.id 
+            JOIN users ON posts.user_id = users.id
+            LEFT JOIN categories ON posts.category_id = categories.id
             WHERE posts.id = ?
         `;
         const [rows] = await db.execute(sql, [postId]);
@@ -30,7 +32,13 @@ static async findById(postId) {
     }
 
     static async findByUserId(userId) {
-        const sql = 'SELECT * FROM posts WHERE user_id = ? ORDER BY created_at DESC';
+        const sql = `
+        SELECT posts.*, categories.name as category_name
+        FROM posts
+        LEFT JOIN categories ON posts.category_id = categories.id
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        `;
         const [rows] = await db.execute(sql, [userId]);
         return rows;
     }
