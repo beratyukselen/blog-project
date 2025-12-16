@@ -39,6 +39,13 @@
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label">Kategori</label>
+                        <select id="category_id" class="form-select" required>
+                            <option value="" disabled>Yükleniyor...</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">İçerik</label>
                         <textarea id="content" class="form-control" rows="8" required></textarea>
                     </div>
@@ -51,10 +58,8 @@
         </div>
     </div>
 
-    <script>
-
-        document.addEventListener('DOMContentLoaded' , async () => {
-            
+<script>
+        document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const postId = urlParams.get('id');
             const token = localStorage.getItem('token');
@@ -67,24 +72,42 @@
             }
 
             const form = document.getElementById('editPostForm');
-             const loadingDiv = document.getElementById('loading');
+            const loadingDiv = document.getElementById('loading');
             const messageDiv = document.getElementById('message');
+            const selectBox = document.getElementById('category_id');
 
             try {
-                const response = await fetch(`http://localhost:3000/api/posts/${postId}`);
-                const post = await response.json();
+                const [categoriesRes, postRes] = await Promise.all([
+                    fetch('http://localhost:3000/api/categories'),
+                    fetch(`http://localhost:3000/api/posts/${postId}`)
+                ]);
 
-                if (!response.ok) throw new Error('Yazı bulunamadı');
+                const categories = await categoriesRes.json();
+                const post = await postRes.json();
+
+                if (!postRes.ok) throw new Error('Yazı bulunamadı');
+
+                selectBox.innerHTML = '<option value="" disabled>Bir kategori seçin...</option>';
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.text = cat.name;
+                    selectBox.appendChild(option);
+                });
 
                 document.getElementById('title').value = post.title;
                 document.getElementById('content').value = post.content;
                 document.getElementById('image_url').value = post.image_url || '';
+                
+                if (post.category_id) {
+                    selectBox.value = post.category_id;
+                }
 
                 loadingDiv.style.display = 'none';
                 form.style.display = 'block';
 
             } catch (error) {
-                loadingDiv.innerHTML = '<p class = "text-danger">Veriler yüklenemedi!</p>';
+                loadingDiv.innerHTML = '<p class="text-danger">Veriler yüklenemedi!</p>';
                 console.error(error);
             }
 
@@ -94,32 +117,34 @@
                 const title = document.getElementById('title').value;
                 const content = document.getElementById('content').value;
                 const image_url = document.getElementById('image_url').value;
+                const category_id = document.getElementById('category_id').value;
 
                 try {
                     const res = await fetch(`http://localhost:3000/api/posts/update/${postId}`, {
-                        method : 'PUT',
-                        headers: {
-                            'Content-Type' : 'application/json',
-                            'Authorization' : `Bearer ${token}`
+                        method: 'PUT',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` 
                         },
-                        body: JSON.stringify({
-                            title,
-                            content,
-                            image_url,
-                            category_id: 1
+                        body: JSON.stringify({ 
+                            title, 
+                            content, 
+                            image_url, 
+                            category_id 
                         })
                     });
 
                     const data = await res.json();
 
                     if (res.ok) {
-                        messageDiv.innerHTML = '<span class ="text-success fw-bold"> Başarıyla Güncellendi! Yönlendiriliyorsunuz...</span>';
+                        messageDiv.innerHTML = '<span class="text-success fw-bold">Başarıyla Güncellendi! Yönlendiriliyorsunuz...</span>';
                         setTimeout(() => {
                             window.location.href = 'dashboard.html';
                         }, 1500);
                     } else {
                         messageDiv.innerHTML = `<span class="text-danger">${data.message}</span>`;
                     }
+
                 } catch (error) {
                     console.error(error);
                     messageDiv.innerHTML = '<span class="text-danger">Sunucu hatası!</span>';
@@ -127,5 +152,6 @@
             });
         });
     </script>
+
 </body>
 </html>
