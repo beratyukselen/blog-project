@@ -7,7 +7,7 @@ const postRoutes = require('./routes/postRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const likeRoutes = require('./routes/likeRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
-const userRoutes = require('./routes/userRotues');
+const userRoutes = require('./routes/userRoutes');
 
 dotenv.config();
 

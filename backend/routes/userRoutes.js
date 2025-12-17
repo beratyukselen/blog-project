@@ -4,6 +4,6 @@ const userController = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 router.get('/profile', authMiddleware, userController.getProfile);
-router.get('/update', authMiddleware, userController.updateProfile);
+router.put('/update', authMiddleware, userController.updateProfile);
 
 module.exports = router;
