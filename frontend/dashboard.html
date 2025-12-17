@@ -23,12 +23,13 @@
             <div class="col-md-4">
                 <div class="card shadow-sm mb-4">
                     <div class="card-body text-center">
-                        <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User" class="img-fluid rounded-circle mb-3" style="width: 100px;">
+                        <img id="user-image" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="User" class="img-fluid rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
                         <h4 id="user-name">Yükleniyor...</h4>
-                        <p class="text-muted">Junior Blog Yazarı ✍️</p>
+                        <p id="user-bio" class="text-muted">Junior Blog Yazarı ✍️</p>
                         <hr>
                         <div class="d-grid">
                             <a href="add-post.html" class="btn btn-success">➕ Yeni Yazı Ekle</a>
+                            <a href="settings.html" class="btn btn-outline-secondary mt-2">⚙️ Ayarlar</a>
                         </div>
                     </div>
                 </div>
@@ -77,6 +78,28 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+
+            try {
+                const userRes = await fetch('http://localhost:3000/api/users/profile', {
+                    headers: { 'Authorization' : `Bearer ${token}`}
+                });
+                const userData = await userRes.json();
+
+                if (userRes.ok) {
+                    const bioElement = document.getElementById('user-bio');
+                    if (userData.bio) {
+                        bioElement.innerText = userData.bio;
+                    }
+
+                    const imgElement = document.getElementById('user-image');
+                    if (userData.profile_image) {
+                        imgElement.src = userData.profile_image;
+                    }
+                }
+            } catch (error) {
+                console.error("Profil bilgileri çekilemedi:", error);
+            }
+
             const listBody = document.getElementById('my-posts-list');
             const countSpan = document.getElementById('post-count');
 
