@@ -2,14 +2,19 @@ const Post = require('../models/postModel');
 
 exports.createPost = async (req, res) => {
     try {
-        const { title, content, image_url, category_id } = req.body;
+        const { title, content, category_id } = req.body;
         const userId = req.userData.userId;
+
+        let image_url = null;
+        if (req.file) {
+            image_url = `http://localhost:3000/uploads/${req.file.filename}`;
+        }
 
         if (!title || !content) {
             return res.status(400).json({ message: 'Başlık ve içerik zorunludur.' });
         }
 
-        await Post.create(title, content, image_url || null, userId, category_id);
+        await Post.create(title, content, image_url, userId, category_id);
 
         res.status(201).json({ message: 'Yazı başarıyla paylaşıldı!' });
 

@@ -28,9 +28,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Resim URL (Opsiyonel)</label>
-                        <input type="url" id="image_url" class="form-control" placeholder="https://ornek.com/resim.jpg">
-                        <div class="form-text">Boş bırakırsan varsayılan resim kullanılır.</div>
+                        <label class="form-label">Kapak Resmi</label>
+                        <input type="file" id="image" class="form-control" accept="image/*">
                     </div>
 
                     <div class="mb-3">
@@ -65,23 +64,32 @@
 
                 const title = document.getElementById('title').value;
                 const content = document.getElementById('content').value;
-                const image_url = document.getElementById('image_url').value;
                 const category_id = document.getElementById('category_id').value;
+                const imageInput = document.getElementById('image');
+                const file = imageInput.files[0];
+
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('content', content);
+                formData.append('category_id', category_id);
+
+                if (file) {
+                    formData.append('image', file);
+                }
 
                 try {
                     const res = await fetch('http://localhost:3000/api/posts/create', {
                         method: 'POST',
                         headers: { 
-                            'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}` 
                         },
-                        body: JSON.stringify({ title, content, image_url, category_id })
+                        body: formData
                     });
 
                     const data = await res.json();
 
                     if (res.ok) {
-                        alert('Yazı başarıyla eklendi! 🎉');
+                        alert('Yazı ve Resim Yüklendi! 🎉');
                         window.location.href = 'index.html';
                     } else {
                         document.getElementById('message').innerHTML = `<p class="text-danger">${data.message}</p>`;
