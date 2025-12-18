@@ -84,7 +84,7 @@ exports.updatePost = async (req,res) => {
     try {
         const postId = req.params.id;
         const userId = req.userData.userId;
-        const { title, content, image_url, category_id } = req.body;
+        const { title, content, category_id } = req.body;
 
         const post = await Post.findById(postId);
 
@@ -94,6 +94,12 @@ exports.updatePost = async (req,res) => {
 
         if (post.user_id !== userId) {
             return res.status(403).json({ message: 'Bu yazıyı düzenlemeye yetkiniz yok!' });
+        }
+
+        let image_url = post.image_url;
+
+        if (req.file) {
+            image_url = `http://localhost:3000/uploads/${req.file.filename}`;
         }
 
         await Post.update(postId, title, content, image_url, category_id);

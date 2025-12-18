@@ -35,8 +35,14 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Resim URL</label>
-                        <input type="url" id="image_url" class="form-control">
+                        <label class="form-label">Kapak Resmi</label>
+
+                        <div class="mb-2 text-center">
+                            <img id="current-image-preview" src="" class="img-thumbnail" style="height: 150px; object-fit: cover; display: none;">
+                        </div>
+
+                        <input type="file" id="image" class="form-control" accept="image/*">
+                        <div class="form-text text-muted">Yeni bir resim seçmezsen eskisi kalır.</div>
                     </div>
 
                     <div class="mb-3">
@@ -98,10 +104,15 @@
 
                 document.getElementById('title').value = post.title;
                 document.getElementById('content').value = post.content;
-                document.getElementById('image_url').value = post.image_url || '';
                 
                 if (post.category_id) {
                     selectBox.value = post.category_id;
+                }
+
+                if (post.image_url) {
+                    const imgPreview = document.getElementById('current-image-preview');
+                    imgPreview.src = post.image_url;
+                    imgPreview.style.display = 'block';
                 }
 
                 loadingDiv.style.display = 'none';
@@ -117,22 +128,27 @@
 
                 const title = document.getElementById('title').value;
                 const content = document.getElementById('content').value;
-                const image_url = document.getElementById('image_url').value;
                 const category_id = document.getElementById('category_id').value;
+
+                const imageInput = document.getElementById('image');
+                const file = imageInput.files[0];
+
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('content', content);
+                formData.append('category_id', category_id);
+
+                if (file) {
+                    formData.append('image', file);
+                }
 
                 try {
                     const res = await fetch(`http://localhost:3000/api/posts/update/${postId}`, {
                         method: 'PUT',
                         headers: { 
-                            'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}` 
                         },
-                        body: JSON.stringify({ 
-                            title, 
-                            content, 
-                            image_url, 
-                            category_id 
-                        })
+                        body: formData
                     });
 
                     const data = await res.json();
