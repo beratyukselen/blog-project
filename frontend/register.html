@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol - Blog Projesi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
+
+    <div class="card shadow-lg p-4" style="width: 400px;">
+        <div class="card-body">
+            <h3 class="text-center mb-4">🚀 Kayıt Ol</h3>
+            
+            <form id="registerForm">
+                <div class="mb-3">
+                    <label class="form-label">Kullanıcı Adı</label>
+                    <input type="text" id="username" class="form-control" placeholder="Örn: berat123" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">E-Posta Adresi</label>
+                    <input type="email" id="email" class="form-control" placeholder="ornek@email.com" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Şifre</label>
+                    <input type="password" id="password" class="form-control" placeholder="********" required>
+                </div>
+
+                <div id="message" class="text-center mb-3"></div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Kayıt Ol</button>
+                </div>
+            </form>
+
+            <div class="text-center mt-3">
+                <small>Zaten hesabın var mı? <a href="login.html">Giriş Yap</a></small>
+            </div>
+            <div class="text-center mt-2">
+                <small><a href="index.html" class="text-muted text-decoration-none">← Anasayfaya Dön</a></small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+
+            if(password.length < 6) {
+                messageDiv.innerHTML = '<span class="text-danger">Şifre en az 6 karakter olmalı!</span>';
+                return;
+            }
+
+            try {
+                const res = await fetch('http://localhost:3000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+
+                    messageDiv.innerHTML = '<span class="text-success fw-bold">✅ Kayıt Başarılı! İçeri alınıyorsunuz...</span>';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.html'; 
+                    }, 1500);
+                } else {
+                    messageDiv.innerHTML = `<span class="text-danger">${data.message}</span>`;
+                }
+
+            } catch (error) {
+                console.error(error);
+                messageDiv.innerHTML = '<span class="text-danger">Sunucu hatası! Backend açık mı?</span>';
+            }
+        });
+    </script>
+
+</body>
+</html>

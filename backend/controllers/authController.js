@@ -18,9 +18,18 @@ exports.register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        await User.create(username, email, hashedPassword);
+        const result = await User.create(username, email, hashedPassword);
+        const token = jwt.sign(
+            { id: result.insertId, username: username },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
-        res.status(201).json({ message: 'Kullanıcı başarıyla oluşturuldu! 🎉' });
+        res.status(201).json({
+            message: 'Kayıt başarılı ve giriş yapıldı!',
+            token: token,
+            username: username
+        });
 
     } catch (error) {
         console.error(error);
