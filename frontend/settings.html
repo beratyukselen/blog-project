@@ -38,9 +38,15 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Profil Resmi (URL)</label>
-                                    <input type="url" id="profile_image" class="form-control" placeholder="https://ornek.com/resim.jpg">
-                                    <div class="form-text">Google'dan bir resim bağlantısı yapıştırabilirsin.</div>
+                                    <label class="form-label fw-bold">Profil Resmi</label>
+
+                                    <div class="mb-2 text-center">
+                                        <img id="current-preview" src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                        class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
+                                    </div>
+
+                                    <input type="file" id="profile_image" class="form-control" accept="image/*">
+                                    <div class="form-text">Yeni bir resim seçmezsen eskisi kalır.</div>
                                 </div>
 
                                 <div class="mb-3">
@@ -66,7 +72,6 @@
             if (!token) window.location.href = 'login.html';
 
             document.addEventListener('DOMContentLoaded', async () => {
-                const imgPreview = document.getElementById('preview-image');
 
                 try {
                     const res = await fetch('http://localhost:3000/api/users/profile', {
@@ -77,10 +82,11 @@
                     if (res.ok) {
                         document.getElementById('username').value = user.username;
                         document.getElementById('bio').value = user.bio || '';
-                        document.getElementById('profile_image').value = user.profile_image || '';
 
                         if (user.profile_image) {
-                            imgPreview.src = user.profile_image;
+                            document.getElementById('current-preview').src = user.profile_image;
+                            const mainPreview = document.getElementById('preview-image');
+                            if(mainPreview) mainPreview.src = user.profile_image;
                         }
                     }
                 } catch (error) {
@@ -92,17 +98,26 @@
 
                     const username = document.getElementById('username').value;
                     const bio = document.getElementById('bio').value;
-                    const profile_image = document.getElementById('profile_image').value;
+
+                    const fileInput = document.getElementById('profile_image');
+                    const file = fileInput.files[0];
                     const messageDiv = document.getElementById('message');
+
+                    const formData = new FormData();
+                    formData.append('username', username);
+                    formData.append('bio', bio);
+
+                    if (file) {
+                        formData.append('profile_image', file);
+                    }
 
                     try {
                         const res = await fetch('http://localhost:3000/api/users/update', {
                             method: 'PUT' ,
                             headers: {
-                                'Content-Type': 'application/json' ,
                                 'Authorization': `Bearer ${token}`
                             },
-                            body: JSON.stringify({ username, bio, profile_image })
+                            body: formData
                         });
 
                         const data = await res.json();
