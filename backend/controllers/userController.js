@@ -14,9 +14,18 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         const userId = req.userData.userId;
-        const { username, bio, profile_image } = req.body;
+        const { username, bio } = req.body;
 
-        await User.update(userId, username, bio, profile_image);
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'Kullanıcı bulunamadı.'});
+
+        let image_url = user.profile_image;
+
+        if (req.file) {
+            image_url = `http://localhost:3000/uploads/${req.file.filename}`;
+        }
+
+        await User.update(userId, username, bio, image_url);
 
         res.status(200).json({ message: 'Profil başarıyla güncellendi!'});
     } catch (error) {
