@@ -1,9 +1,9 @@
 const express = require ('express');
 const router = express.Router();
-const likeController = require('../controllers/likeController');
+const LikeController = require('../controllers/LikeController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-router.post('/toggle', authMiddleware, likeController.toggleLike);
-router.get('/status/:postId', authMiddleware, likeController.getLikeStatus);
+router.post('/toggle', authMiddleware, LikeController.toggleLike);
+router.get('/status/:postId', authMiddleware, LikeController.getLikeStatus);
 
 module.exports = router;
