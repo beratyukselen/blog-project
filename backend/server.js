@@ -4,12 +4,12 @@ const dotenv = require('dotenv');
 const db = require('./config/db');
 const path = require('path');
 
-const authRoutes = require('./routes/authRoutes');
-const postRoutes = require('./routes/postRoutes');
-const commentRoutes = require('./routes/commentRoutes');
-const likeRoutes = require('./routes/likeRoutes');
-const categoryRoutes = require('./routes/categoryRoutes');
-const userRoutes = require('./routes/userRoutes');
+const auth = require('./routes/auth');
+const post = require('./routes/posts');
+const comment = require('./routes/comments');
+const like = require('./routes/likes');
+const category = require('./routes/categories');
+const user = require('./routes/users');
 
 dotenv.config();
 
@@ -19,12 +19,13 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/api/auth' , authRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/likes', likeRoutes);
+
+app.use('/api/auth' , auth);
+app.use('/api/posts', post);
+app.use('/api/comments', comment);
+app.use('/api/categories', category);
+app.use('/api/users', user);
+app.use('/api/likes', like);
 
 app.get('/', (req, res) => {
     res.json({ message: "Backend ve Git Yapısı Hazır! 🚀" });
