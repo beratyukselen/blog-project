@@ -22,7 +22,7 @@ exports.updateProfile = async (req, res) => {
         let image_url = user.profile_image;
 
         if (req.file) {
-            image_url = `http://localhost:3000/uploads/${req.file.filename}`;
+            image_url = req.file.location;
         }
 
         await User.update(userId, username, bio, image_url);

@@ -7,7 +7,7 @@ exports.createPost = async (req, res) => {
 
         let image_url = null;
         if (req.file) {
-            image_url = `http://localhost:3000/uploads/${req.file.filename}`;
+            image_url = req.file.location;
         }
 
         if (!title || !content) {
@@ -99,7 +99,7 @@ exports.updatePost = async (req,res) => {
         let image_url = post.image_url;
 
         if (req.file) {
-            image_url = `http://localhost:3000/uploads/${req.file.filename}`;
+            image_url = req.file.location;
         }
 
         await Post.update(postId, title, content, image_url, category_id);
